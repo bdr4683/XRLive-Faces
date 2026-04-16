@@ -1,0 +1,9 @@
+numpy
+cv2
+pylivelinkface
+mediapipe
+transforms3d
+open3d
+pandas
+python-ffmpeg
+perlin
