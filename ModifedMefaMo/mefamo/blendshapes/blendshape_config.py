@@ -185,8 +185,8 @@ class BlendShapeConfig:
             # MOUTH
 
             FaceBlendShape.MouthClose : (-0.8, -0.2),
-            FaceBlendShape.JawLeft : (-0.2, 0.0),
-            FaceBlendShape.JawRight : (0.0, 0.2),
+            FaceBlendShape.JawLeft : (-0.4, -0.0),
+            FaceBlendShape.JawRight : (0.0, 0.4),
             FaceBlendShape.JawOpen : (0.2, 1.2),
             FaceBlendShape.MouthSmileLeft : (0.4, 0.8),
             FaceBlendShape.MouthSmileRight : (0.4, 0.8),

@@ -311,7 +311,8 @@ class Mefamo():
                 image = Drawing.draw_landmark_point(face_landmarks.landmark[473], image, color = (201, 174, 255))
 
                 image = Drawing.draw_landmark_point(face_landmarks.landmark[10], image, color = (192, 64, 128))
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[152], image, color = (64, 192, 128))
+                image = Drawing.draw_landmark_point(face_landmarks.landmark[152], image, color = (64, 128, 192))
+                image = Drawing.draw_landmark_point(face_landmarks.landmark[168], image, color = (128, 192, 64))
                 image = Drawing.draw_landmark_point(face_landmarks.landmark[1], image, color = (255, 255, 255))
 
                 # image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (255, 255, 255))
@@ -325,7 +326,7 @@ class Mefamo():
                 roll = eulerAngles[2]
 
                 # calculate and set all the blendshapes                
-                self.blendshape_calulator.calculate_blendshapes(self.live_link_face, metric_landmarks[0:3].T, face_landmarks.landmark, roll)
+                self.blendshape_calulator.calculate_blendshapes(self.live_link_face, metric_landmarks[0:3].T, face_landmarks.landmark, pitch, yaw, roll)
 
                 self.live_link_face.set_blendshape(FaceBlendShape.HeadPitch, pitch)
                 self.live_link_face.set_blendshape(FaceBlendShape.HeadRoll, roll)
