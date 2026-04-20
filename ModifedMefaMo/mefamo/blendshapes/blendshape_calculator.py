@@ -48,7 +48,7 @@ class BlendshapeCalculator():
                 self._live_link_face_swap = self._live_link_face
                 self._live_link_face = self._live_link_face_calibrate
                 self._calculate_eye_landmarks(roll)
-                self._calculate_mouth_landmarks(yaw, roll)
+                self._calculate_mouth_landmarks(yaw, roll, pitch)
                 self.calibrated = True
                 self._live_link_face = self._live_link_face_swap
                 self._live_link_face_swap = None
@@ -57,7 +57,7 @@ class BlendshapeCalculator():
         # os.system("cls")
             
         self._calculate_eye_landmarks(roll)
-        self._calculate_mouth_landmarks(yaw, roll)
+        self._calculate_mouth_landmarks(yaw, roll, pitch)
         return
         
         
@@ -130,7 +130,7 @@ class BlendshapeCalculator():
             min, max = self.blend_shape_config.config.get(index)
         return self._remap(value, min, max)  
 
-    def _calculate_mouth_landmarks(self, yaw: float, roll: float):       
+    def _calculate_mouth_landmarks(self, yaw: float, roll: float, pitch: float):       
         upper_lip = self._get_landmark(self.blend_shape_config.CanonicalPpoints.upper_lip)
         upper_outer_lip = self._get_landmark(self.blend_shape_config.CanonicalPpoints.upper_outer_lip)
         lower_lip = self._get_landmark(self.blend_shape_config.CanonicalPpoints.lower_lip)
@@ -175,25 +175,28 @@ class BlendshapeCalculator():
         lowest_chin_5_pts = (self._get_landmark(176) + self._get_landmark(148) + lowest_chin + self._get_landmark(377) + self._get_landmark(400)) / 5
         jaw_right_left_tilt_hotfix = (np.sin(yaw) * -0.5) + (np.sin(roll) * -0.5)
         jaw_right_left = (upper_head[0] + lower_chin[0]) + jaw_right_left_tilt_hotfix
-        # print("{:<5} // {:<5} {:<5} {:<5} {:<5} // {:<5}".format(f"{jaw_right_left: .2f}", f"{upper_head[0]: .2f}", f"{unibrow[0]: .2f}", f"{nose_tip[0]: .2f}", f"{lowest_chin[0]: .2f}", f"{jaw_right_left_tilt_hotfix: .2f}")) # NOTE: REMOVE WHEN DONE
+        # print("{:<5} // {:<5} {:<5} {:<5} {:<5} // {:<5}".format(f"{jaw_right_left: .2f}", f"{upper_head[0]: .2f}", f"{unibrow[0]: .2f}", f"{nose_tip[0]: .2f}", f"{lowest_chin[0]: .2f}", f"{jaw_right_left_tilt_hotfix: .2f}"))
 
         self._live_link_face.set_blendshape(FaceBlendShape.JawLeft, 1 - self._remap_blendshape(FaceBlendShape.JawLeft, jaw_right_left))
         self._live_link_face.set_blendshape(FaceBlendShape.JawRight, self._remap_blendshape(FaceBlendShape.JawRight, jaw_right_left))
 
         ### MOUTH
 
-        # TODO mouth open but teeth closed
+        # TODO: "smiling, mouth open, teeth closed" could still be imrpoved somewhat.
         smile_left = (mouth_corner_left[1] - upper_lip[1]) + ((1 - mouth_close) * 0.4)
         smile_right = (mouth_corner_right[1] - upper_lip[1]) + ((1 - mouth_close) * 0.4)
-        # print ("{:2f}".format(round(smile_left, 2)), "{:2f}".format(round(smile_right, 2)))
-        # os.system('cls') #############################################################################
-        # print("" + '{:.2f}'.format(round(mouth_corner_left[1], 2)) + " - " '{:.2f}'.format(round(upper_lip[1], 2)) + "\n"
-        # + '{:.2f}'.format(round(mouth_corner_right[1], 2)) + " - " '{:.2f}'.format(round(upper_lip[1], 2))
-        # )
-        # print("" + '{:.2f}'.format(round(smile_left, 2)) + "\n" + '{:.2f}'.format(round(smile_right, 2)))
-
+        p_mult = 1.5
+        if (pitch < 0):
+            p_mult = 1.0
+        smile_left_EX = (smile_left - (np.sin(roll) * 1.0)) / np.cos(pitch) + (np.sin(pitch) * p_mult)
+        smile_right_EX = (smile_right + (np.sin(roll) * 1.0)) / np.cos(pitch) + (np.sin(pitch) * p_mult)
+        smile_left = smile_left_EX
+        smile_right = smile_right_EX
+        # print("{:<5} // {:<5} {:<5} // {:<5}".format(f"{smile_left: .2f}", f"{mouth_corner_left[1]: .2f}", f"{upper_lip[1]: .2f}", f"{1 - mouth_close: .2f}"))
+        # print("{:<5} // {:<5} {:<5} // {:<5}".format(f"{smile_right: .2f}", f"{mouth_corner_right[1]: .2f}", f"{upper_lip[1]: .2f}", f"{1 - mouth_close: .2f}"))
         mouth_smile_left = self._remap_blendshape(FaceBlendShape.MouthSmileLeft, smile_left)
         mouth_smile_right = self._remap_blendshape(FaceBlendShape.MouthSmileRight, smile_right)
+        
 
         self._live_link_face.set_blendshape(
             FaceBlendShape.MouthSmileLeft, mouth_smile_left)
@@ -202,8 +205,12 @@ class BlendshapeCalculator():
 
         dimple_left = ((mouth_corner_left[1] - upper_lip[1]) - (1 - 1))
         dimple_right = ((mouth_corner_right[1] - upper_lip[1]) - (1 - 1))
-        mouth_dimple_left = self._remap_blendshape(FaceBlendShape.MouthSmileLeft, dimple_left)
-        mouth_dimple_right = self._remap_blendshape(FaceBlendShape.MouthSmileRight, dimple_right)
+        dimple_left_EX = (dimple_left - (np.sin(roll) * 1.0)) / np.cos(pitch) + (np.sin(pitch) * p_mult)
+        dimple_right_EX = (dimple_right + (np.sin(roll) * 1.0)) / np.cos(pitch) + (np.sin(pitch) * p_mult)
+        dimple_left = dimple_left_EX
+        dimple_right = dimple_right_EX
+        mouth_dimple_left = self._remap_blendshape(FaceBlendShape.MouthSmileLeft, smile_left)
+        mouth_dimple_right = self._remap_blendshape(FaceBlendShape.MouthSmileRight, smile_right)
 
         self._live_link_face.set_blendshape(
             FaceBlendShape.MouthDimpleLeft, mouth_smile_left / 2)

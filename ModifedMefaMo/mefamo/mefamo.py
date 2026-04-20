@@ -310,9 +310,9 @@ class Mefamo():
                 image = Drawing.draw_landmark_point(face_landmarks.landmark[468], image, color = (0, 242, 255))
                 image = Drawing.draw_landmark_point(face_landmarks.landmark[473], image, color = (201, 174, 255))
 
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[10], image, color = (192, 64, 128))
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[152], image, color = (64, 128, 192))
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[168], image, color = (128, 192, 64))
+                image = Drawing.draw_landmark_point(face_landmarks.landmark[291], image, color = (192, 64, 128))
+                image = Drawing.draw_landmark_point(face_landmarks.landmark[61], image, color = (64, 128, 192))
+                image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (128, 192, 64))
                 image = Drawing.draw_landmark_point(face_landmarks.landmark[1], image, color = (255, 255, 255))
 
                 # image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (255, 255, 255))
