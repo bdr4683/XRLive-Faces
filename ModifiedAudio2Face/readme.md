@@ -21,6 +21,7 @@ Pull the required Docker image from Docker Hub:
 ```bash
 docker pull rohan7501/audio2face-final
 ```
+The above command does not work right now working on it alternative
 
 ## Run the Container
 
