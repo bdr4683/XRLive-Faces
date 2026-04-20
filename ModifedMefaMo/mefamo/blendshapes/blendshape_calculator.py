@@ -3,7 +3,7 @@ import numpy as np
 from pylivelinkface import PyLiveLinkFace, FaceBlendShape
 from google.protobuf.internal.containers import RepeatedCompositeFieldContainer
 from .blendshape_config import BlendShapeConfig
-import os
+# import os
 
 class BlendshapeCalculator():
     """ BlendshapeCalculator class
@@ -48,7 +48,7 @@ class BlendshapeCalculator():
                 self._live_link_face_swap = self._live_link_face
                 self._live_link_face = self._live_link_face_calibrate
                 self._calculate_eye_landmarks(roll)
-                self._calculate_mouth_landmarks(yaw)
+                self._calculate_mouth_landmarks(yaw, roll)
                 self.calibrated = True
                 self._live_link_face = self._live_link_face_swap
                 self._live_link_face_swap = None
@@ -57,7 +57,7 @@ class BlendshapeCalculator():
         # os.system("cls")
             
         self._calculate_eye_landmarks(roll)
-        self._calculate_mouth_landmarks(yaw)
+        self._calculate_mouth_landmarks(yaw, roll)
         return
         
         
@@ -130,7 +130,7 @@ class BlendshapeCalculator():
             min, max = self.blend_shape_config.config.get(index)
         return self._remap(value, min, max)  
 
-    def _calculate_mouth_landmarks(self, yaw: float):       
+    def _calculate_mouth_landmarks(self, yaw: float, roll: float):       
         upper_lip = self._get_landmark(self.blend_shape_config.CanonicalPpoints.upper_lip)
         upper_outer_lip = self._get_landmark(self.blend_shape_config.CanonicalPpoints.upper_outer_lip)
         lower_lip = self._get_landmark(self.blend_shape_config.CanonicalPpoints.lower_lip)
@@ -169,13 +169,12 @@ class BlendshapeCalculator():
         under_lip = self._get_landmark(self.blend_shape_config.CanonicalPpoints.under_lip) #####
         self._live_link_face.set_blendshape(FaceBlendShape.JawOpen, jaw_open * 1.0000)
     
-        # TODO: The Jaw is only interested in the X-Axis, but rotating the head messes this up.
+        # TODO: Errenous values when rotating head could still be improved somewhat.
         unibrow = self._get_landmark(self.blend_shape_config.CanonicalPpoints.unibrow) 
         lower_chin = self._get_landmark(self.blend_shape_config.CanonicalPpoints.lower_chin) 
         lowest_chin_5_pts = (self._get_landmark(176) + self._get_landmark(148) + lowest_chin + self._get_landmark(377) + self._get_landmark(400)) / 5
-        # jaw_right_left_tilt_hotfix = ((nose_tip[1]) * np.sin(roll) * 0)
-        # TODO: Fix errenous activation by considering the HeadYwa.
-        jaw_right_left = (nose_tip[0] + lower_chin[0])
+        jaw_right_left_tilt_hotfix = (np.sin(yaw) * -0.5) + (np.sin(roll) * -0.5)
+        jaw_right_left = (upper_head[0] + lower_chin[0]) + jaw_right_left_tilt_hotfix
         # print("{:<5} // {:<5} {:<5} {:<5} {:<5} // {:<5}".format(f"{jaw_right_left: .2f}", f"{upper_head[0]: .2f}", f"{unibrow[0]: .2f}", f"{nose_tip[0]: .2f}", f"{lowest_chin[0]: .2f}", f"{jaw_right_left_tilt_hotfix: .2f}")) # NOTE: REMOVE WHEN DONE
 
         self._live_link_face.set_blendshape(FaceBlendShape.JawLeft, 1 - self._remap_blendshape(FaceBlendShape.JawLeft, jaw_right_left))

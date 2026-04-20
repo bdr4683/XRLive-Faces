@@ -62,11 +62,11 @@ class BlendShapeConfig:
             # FaceBlendShape.EyeLookUpRight : (-0.4, 0.0),
 
             FaceBlendShape.EyeLookInLeft :    (0.05, 0.25),
-            FaceBlendShape.EyeLookOutLeft :   (0.05, 0.25), # set to 0.15, 0.35 if awry, symmertry be damned
+            FaceBlendShape.EyeLookOutLeft :   (0.15, 0.35), # set to 0.15, 0.35 if awry, symmertry be damned
             FaceBlendShape.EyeLookDownLeft :  (0.02, 0.10),
             FaceBlendShape.EyeLookUpLeft :    (0.02, 0.10),
             FaceBlendShape.EyeLookInRight :   (0.05, 0.25),
-            FaceBlendShape.EyeLookOutRight :  (0.05, 0.25), # set to 0.15, 0.35 if awry, symmertry be damned
+            FaceBlendShape.EyeLookOutRight :  (0.15, 0.35), # set to 0.15, 0.35 if awry, symmertry be damned
             FaceBlendShape.EyeLookDownRight : (0.02, 0.10),
             FaceBlendShape.EyeLookUpRight :   (0.02, 0.10),
 
@@ -167,8 +167,8 @@ class BlendShapeConfig:
 
             FaceBlendShape.EyeWideLeft : (0.1, 0.4),
             FaceBlendShape.EyeWideRight : (0.1, 0.4),
-            FaceBlendShape.EyeSquintLeft : (0.05, 0.13),
-            FaceBlendShape.EyeSquintRight : (0.05, 0.13),
+            FaceBlendShape.EyeSquintLeft : (-0.13, -0.05),
+            FaceBlendShape.EyeSquintRight : (-0.13, -0.05),
         
             FaceBlendShape.EyeLookInLeft :    (0.05, 0.20),
             FaceBlendShape.EyeLookOutLeft :   (0.05, 0.20), # set to 0.15, 0.35 if awry, symmertry be damned
@@ -187,7 +187,7 @@ class BlendShapeConfig:
             FaceBlendShape.MouthClose : (-0.8, -0.2),
             FaceBlendShape.JawLeft : (-0.4, -0.0),
             FaceBlendShape.JawRight : (0.0, 0.4),
-            FaceBlendShape.JawOpen : (0.2, 1.2),
+            FaceBlendShape.JawOpen : (0.15, 0.9),
             FaceBlendShape.MouthSmileLeft : (0.4, 0.8),
             FaceBlendShape.MouthSmileRight : (0.4, 0.8),
             FaceBlendShape.MouthFrownLeft : (-0.65, -0.15),
