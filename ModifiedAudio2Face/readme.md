@@ -35,11 +35,11 @@ docker run -it \
 ```
 
 Important Notes
--This command launches an interactive shell inside the container.
--The default working directory inside the container is /workspace.
--Keep the container running while executing the batch script.
--Do not close the container until processing is complete.
--To stop the container, type:
+- This command launches an interactive shell inside the container.
+- The default working directory inside the container is /workspace.
+- Keep the container running while executing the batch script.
+- Do not close the container until processing is complete.
+- To stop the container, type:
 ```bash
 exit
 ```
@@ -64,5 +64,5 @@ Frames per second for processing.
 ## Example
 
 ```bash
-audio2face-execute.bat D:&\audio_files&\input.wav D:&\csv_files&\output.csv
+audio2face-execute.bat D:\audio_files\input.wav D:\csv_files\output.csv
 ```
