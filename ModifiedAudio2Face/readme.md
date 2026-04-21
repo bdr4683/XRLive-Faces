@@ -22,7 +22,6 @@ https://drive.google.com/file/d/16_avZgsqhvt77A9MnTiY1IvQn8lsmcsJ/view?usp=shari
 ```bash
 docker load -i audio2face.tar
 ```
-The above command does not work right now working on its alternative
 
 ## Run the Container
 
