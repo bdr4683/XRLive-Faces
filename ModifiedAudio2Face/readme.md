@@ -25,6 +25,8 @@ docker load -i audio2face.tar
 
 ## Run the Container
 
+Check the imported image name with `docker images` if its not `audio2face-final` then replace `audio2face-final` in the following command with the displayed name
+
 Start the container using the following command:
 
 ```bash
@@ -32,7 +34,7 @@ docker run -it \
   -e PATH=/opt/python3.10/bin/:/workspace/cmake-4.1.5-linux-x86_64/bin:$PATH \
   --gpus all \
   --name audio2face_container \
-  rohan7501/audio2face-final
+  audio2face-final
 ```
 
 Important Notes
