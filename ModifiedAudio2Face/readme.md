@@ -14,12 +14,13 @@ Make sure the following are installed on your system:
 
 ---
 
-## Pull Docker Image
+## Download Docker Image
 
-Pull the required Docker image from Docker Hub:
+Download the tar file from (Needs RIT email):
+https://drive.google.com/file/d/16_avZgsqhvt77A9MnTiY1IvQn8lsmcsJ/view?usp=sharing
 
 ```bash
-docker pull rohan7501/audio2face-final
+docker load -i audio2face.tar
 ```
 The above command does not work right now working on its alternative
 
