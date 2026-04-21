@@ -1,23 +1,23 @@
-# MeFaMo - MediapipeFaceMocap
+# MeFaMo (Modified) - MediapipeFaceMocap
 
-If you find this project useful and want to support me, feel free to buy me a coffee:
+If you find this project useful and want to support the original creator, feel free to buy them a coffee:
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jimwest)
+[!["Buy Them A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jimwest)
 
-
-MeFaMo calculates the facial keypoints and blend shapes of a user. Instead of using the built in IPhone blend shape calculation (like [LiveLinkFace App](https://apps.apple.com/us/app/live-link-face/id1495370836) does), this uses the Googles [Mediapipe](https://github.com/google/mediapipe) to calculate the facial key points of a face. Those key points will then be used to calculate several facial blend shapes (like eyebrows, blinking, smiling etc.). You only need a PC with a webcam and no external device to use it. 
-It uses my [PyLiveLinkFace](https://github.com/JimWest/PyLiveLinkFace) library to send the blend shapes directly into the currently opened Unreal LiveLink Project (the Unreal Engine can also run on a separate PC).
+This is a fork of [MeFaMo](https://github.com/JimWest/MeFaMo). Instead of using the propretary, native iPhone blendshape calculations (like what [LiveLinkFace App](https://apps.apple.com/us/app/live-link-face/id1495370836) does), MeFaMo uses the facial key points derived from Google's [Mediapipe](https://github.com/google/mediapipe) to calculate several blendshapes that contribute to movements like blinking, smiling, raising an eyebrow, etc. The benefit of this is that one only needs a PC with some video input (i.e. a file or webcam) and no external device to use it.
+It uses the original creator's [PyLiveLinkFace](https://github.com/JimWest/PyLiveLinkFace) library to create an output stream of blendshape data into the currently-opened Unreal Engine Project using LiveLink (Unreal Engine can be ran on a different computer as well). It also exports all of the data streamed into as out.csv file within the root directory of the repository similar to Apple's ARKit format used with LiveLinkface App once video input is ceased (either by user input or reaching the end of a file).
 
 ![alt text](https://github.com/JimWest/MeFaMo/blob/main/images/showoff_2.gif?raw=true)
+This gif was made using the original MeFaMo copy and may not be one-to-one with what one would see when use.
 
-It's not fully finished yet and missing a calibration feature to recalibrate all the values to several other faces, but it's a good start on how to calculate the blend shapes and create your own facial motion capture with Unreal. 
+There's still plenty to be done, such as a more robust, manual calibration feature to better accommodate certain faces, but it should be a good start on easy-access facial motion capture with Unreal Engine for developmental purposes.
 
 ## Prerequisites
-To setup the LiveLink plugin and system in Unreal, see the following tutorial:
+To setup the LiveLink plugin and system in Unreal Engine, see the following tutorial:
 https://docs.unrealengine.com/4.27/en-US/AnimatingObjects/SkeletalMeshAnimation/FacialRecordingiPhone/
 
 ## Requirements
-MeFaMo needs the following python libraries:
+This modified fork of MeFaMo needs the following Python libraries:
 <ul>
   <li>numpy</li>
   <li>cv2</li>
@@ -25,16 +25,102 @@ MeFaMo needs the following python libraries:
   <li>mediapipe</li>
   <li>transforms3d</li>
   <li>open3d</li>
+  <li>pandas</li>
+  <li>perlin</li>
 </ul>
+In addition, some of the Python libraries have been deprecated, so be sure to install a previous version of Python and pip (I personally recommend 3.8.10).
 
 ## Install
+
+Installation has been unchecked as of now, so it may be impossible. The recommended way to use at the moment can be seen in the Usage section.
+Nevertheless, to install it, (ideally) clone the git repository and install it with the setup.py file:
+```
+python setup.py install
+```
+
+## Usage
+
+There is currently no executable file for this modified fork of MeFaMo. There is one of the main build in the [release](https://github.com/JimWest/MeFaMo/releases) section of the original repository.
+
+To use MeFaMo in python, just execute the mefamo_cli.py file in the root folder of where you downloaded (or cloned) the repository:
+```
+python mefamo_cli.py
+```
+
+mefamo_cli allows several types of input specified with the `--input` parameter. By default, it will open webcam 0. You can specify which webcam to use (0, 1, 2, etc.), pass in a directory path for an image or video file (i.e. `--input D:\\Videos\\test.mp4`) for processing.
+In addition, passing in a directory will activate batch processing, where it reads every file recursively within the folder and processes it (i.e. `--input D:\\Videos` where Videos is a directory of videos and images). 
+
+If MeFaMo is being used on another machine than Unreal Engine, you can specify the IP address of the machine with Unreal Engine (and Port if LiveLink settings were changed in Unreal) with the `--ip` (and `--input`) parameter(s) (i.e. `--ip 192.168.0.1 --input 12345`).
+
+If you want to see the normalized 3D points of the detected face (projected on a 2D image), you can use the `--show_3d` parameter, which will open a new window.
+-# I personally have not had luck with this working, so you mileage may vary.
+
+The `--hide_image` parameter will hide the video preview of what is being send (including Mediapipe's facial detection overlay). This is on by default for batch processing.
+
+The `--show_debug` parameter will show the blendshape names and values being streamed to Unreal Engine. This is on by default for developmental reasons.
+
+The `--no_noise` parameter will toggle off baked perlin noise for select blendshapes.
+
+The `--calibrate` parameter will toggle on rudimentary, automated face calibration based on the first frame of facial detection. The automated neature of this lends itself into batch processing.
+
+An experimental GUI from the original repository also lingers here. Same deal as the executable in that the mefamo_cli.py is the intended (and probably only functional) way of using this modified fork of MeFaMo.
+
+## Build the exe yourself
+
+Similar to installing, building has been unchecked as of now, and it may also be impossible. The recommended way to use at the moment can be seen in the Usage section.
+Nevertheless, to build an exe from all needed Python libarys and files, make sure pyinstaller is installed with:
+```
+pip install pyinstaller
+```
+
+After that, you can use pyinstaller and the included mefamo.spec file under examples to build the exe:
+```
+pyinstaller --onefile .\examples\mefamo.spec
+```
+Be sure to move mefamo_cli.py and mefamo_gui.py into the `mefamo\examples\` folder, as they were moved for command-line testing.
+This will take a bit time, you'll find the exe then in the `mefamo\dist\` folder.
+
+
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+
+<!-- MeFaMo calculates the facial keypoints and blend shapes of a user. Instead of using the built in IPhone blend shape calculation (like [LiveLinkFace App](https://apps.apple.com/us/app/live-link-face/id1495370836) does), this uses the Googles [Mediapipe](https://github.com/google/mediapipe) to calculate the facial key points of a face. Those key points will then be used to calculate several facial blend shapes (like eyebrows, blinking, smiling etc.). You only need a PC with a webcam and no external device to use it. 
+It uses my [PyLiveLinkFace](https://github.com/JimWest/PyLiveLinkFace) library to send the blend shapes directly into the currently opened Unreal LiveLink Project (the Unreal Engine can also run on a separate PC). -->
+
+<!-- ![alt text](https://github.com/JimWest/MeFaMo/blob/main/images/showoff_2.gif?raw=true)
+
+It's not fully finished yet and missing a calibration feature to recalibrate all the values to several other faces, but it's a good start on how to calculate the blend shapes and create your own facial motion capture with Unreal.  -->
+
+<!-- ## Prerequisites
+To setup the LiveLink plugin and system in Unreal, see the following tutorial:
+https://docs.unrealengine.com/4.27/en-US/AnimatingObjects/SkeletalMeshAnimation/FacialRecordingiPhone/ -->
+
+
+<!-- ## Requirements
+This modified fork of MeFaMo needs the following python libraries:
+<ul>
+  <li>numpy</li>
+  <li>cv2</li>
+  <li>pylivelinkface</li>
+  <li>mediapipe</li>
+  <li>transforms3d</li>
+  <li>open3d</li>
+  <li>pandas</li>
+  <li>perlin</li>
+</ul>
+In addition, some of the python libraries have been deprecated, so  -->
+
+<!-- ## Install
 
 To install it, clone the git repo and install it with the setup.py file:
 ```
 python setup.py install
-```
+``` -->
  
-## Usage
+<!-- ## Usage
 
 If you just want to use it and don't have an active python environment or want to install other python packages, you can just the the .exe file of the [release](https://github.com/JimWest/MeFaMo/releases) (unzip the mefamo_win64.zip zip file).
 
@@ -52,7 +138,7 @@ If you want to see the normalized 3d points of the detected face (projected on a
 
 The parameter'--hide_image` will hide the 2d webcam image with keypoint overlay.
 
-There's also an experemental GUI (which doesn't look different to the default executable, but uses kivy for future work).
+There's also an experemental GUI (which doesn't look different to the default executable, but uses kivy for future work). -->
 
 
 ## Build the exe yourself

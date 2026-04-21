@@ -18,7 +18,7 @@ if __name__ == "__main__":
     parser.add_argument('--no_noise', action='store_true',
                         help='Disables overlaying blendshape values perlin noise.')
     parser.add_argument('--calibrate', action='store_true',
-                        help='[[TODO]] Use alternate ranges when calculating blendshapes based on the first frame of (not reccomended for images).')
+                        help='Use alternate ranges when calculating blendshapes based on the first frame of (not reccomended for images).')
     args = parser.parse_args()
 
     print("Starting MeFaMo")
