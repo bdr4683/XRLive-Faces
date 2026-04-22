@@ -15,8 +15,8 @@ setup(
         'pylivelinkface',
         'mediapipe',
         'transforms3d',
-        'open3d'
-        'perlin'
+        'open3d',
+        'perlin',
         'pandas'
     ]
 )

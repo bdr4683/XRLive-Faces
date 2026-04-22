@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: Mefamo-Modified-MediapipeFaceMocap
+Version: 0.19
+Summary: Python Library for generating blendshapes with MediaPipe FaceMesh and sending it to the Unreal Engine for live face tracking
+Home-page: UNKNOWN
+Author: Marco Pattke, Thomas Vilar
+Author-email: j1m_w3st@web.de
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN

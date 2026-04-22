@@ -32,8 +32,8 @@ In addition, some of the Python libraries have been deprecated, so be sure to in
 
 ## Install
 
-Installation has been unchecked as of now, so it may be impossible. The recommended way to use at the moment can be seen in the Usage section.
-Nevertheless, to install it, (ideally) clone the git repository and install it with the setup.py file:
+Installation is experimental for this fork of MeFaMo, so some things may go awry. See Usage section for recommended usage.
+To install it, clone the git repository and install it with the setup.py file:
 ```
 python setup.py install
 ```
@@ -47,7 +47,7 @@ To use MeFaMo in python, just execute the mefamo_cli.py file in the root folder 
 python mefamo_cli.py
 ```
 
-mefamo_cli allows several types of input specified with the `--input` parameter. By default, it will open webcam 0. You can specify which webcam to use (0, 1, 2, etc.), pass in a directory path for an image or video file (i.e. `--input D:\\Videos\\test.mp4`) for processing.
+mefamo_cli.py allows several types of input specified with the `--input` parameter. By default, it will open webcam 0. You can specify which webcam to use (0, 1, 2, etc.), pass in a directory path for an image or video file (i.e. `--input D:\\Videos\\test.mp4`) for processing.
 In addition, passing in a directory will activate batch processing, where it reads every file recursively within the folder and processes it (i.e. `--input D:\\Videos` where Videos is a directory of videos and images). 
 
 If MeFaMo is being used on another machine than Unreal Engine, you can specify the IP address of the machine with Unreal Engine (and Port if LiveLink settings were changed in Unreal) with the `--ip` (and `--input`) parameter(s) (i.e. `--ip 192.168.0.1 --input 12345`).
@@ -67,17 +67,18 @@ An experimental GUI from the original repository also lingers here. Same deal as
 
 ## Build the exe yourself
 
-Similar to installing, building has been unchecked as of now, and it may also be impossible. The recommended way to use at the moment can be seen in the Usage section.
-Nevertheless, to build an exe from all needed Python libarys and files, make sure pyinstaller is installed with:
+Likewise to installation, this is still experimental.
+To build an exe from all needed Python libarys and files, make sure pyinstaller is installed with:
 ```
 pip install pyinstaller
 ```
 
-After that, you can use pyinstaller and the included mefamo.spec file under examples to build the exe:
+After that, be sure to move mefamo_cli.py and mefamo_gui.py into the `mefamo\examples\` folder for building purposes.
+Form there, you can use pyinstaller and the included mefamo.spec file under examples to build the exe:
 ```
-pyinstaller --onefile .\examples\mefamo.spec
+pyinstaller .\examples\mefamo.spec
 ```
-Be sure to move mefamo_cli.py and mefamo_gui.py into the `mefamo\examples\` folder, as they were moved for command-line testing.
+
 This will take a bit time, you'll find the exe then in the `mefamo\dist\` folder.
 
 
