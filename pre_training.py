@@ -4,26 +4,34 @@ from scipy.ndimage import gaussian_filter1d
 import subprocess
 import os
 import shutil
+from emotion_to_blendshapes import run_extraction
 
 #TODO: replace with however we're actually scraping videos
+
+# Basic configuration
 video_path = "video.mp4"
+base_output_folder = "outputs"
 
+# Create run folder path once at the top level to share with functions
+run_folder_name = os.path.splitext(os.path.basename(video_path))[0]
+run_folder_path = os.path.join(base_output_folder, run_folder_name)
+os.makedirs(run_folder_path, exist_ok=True)
 
-"""
-This is where I want to call processing for each input stream, something like the following
+def get_emotion_blendshapes(video_path, output_dir):
+    """
+    Processes a video file to extract facial emotion data and maps it to ARKit blendshapes.
+    Saves the result directly into the video's dedicated run folder.
 
-mocap = get_mocap_blendshapes(video_path)
-emotion = get_emotion_blendshapes(video_path)
-audio = get_audio_blendshapes(video_path)
+    Args:
+        video_path (str): Path to the input .mp4 video.
+        output_dir (str): The directory dedicated to this specific video run.
 
-Obviously the integration of each input stream probably won't be as simple as get_[]_data(path),
-but the idea is to get it as close to that as we can
-""" 
-#TODO: replace these with actual input stream integration
-
-emotion_path = "emotion.csv"
-emotion = pd.read_csv(emotion_path)
-
+    Returns:
+        pd.DataFrame: DataFrame containing the extracted blendshape data.
+    """
+    output_path = os.path.join(output_dir, "emotion_raw.csv")
+    run_extraction(video_path, output_path)
+    return pd.read_csv(output_path)
 
 # Run MefaMo to get blendshapes from direct motion capture
 def get_mocap_blendshapes(video_path):
@@ -53,9 +61,6 @@ def get_mocap_blendshapes(video_path):
     except subprocess.CalledProcessError as e:
         print(f"Error: MefaMo failed to process the video. Error: {e}")
         return None
-
-def get_emotion_blendshapes(video_path):
-    return None
 
 # Run Audio2Face to get blendshapes from audio
 def get_audio_blendshapes(audio_path, target_fps=30):
@@ -107,7 +112,7 @@ def extract_audio_from_video(video_path):
         return None
 
 mocap = get_mocap_blendshapes(video_path)
-emotion = get_mocap_blendshapes(video_path)
+emotion = get_mocap_blendshapes(video_path, run_folder_path)
 
 temp_audio_file = extract_audio_from_video(video_path)
 audio = get_audio_blendshapes(temp_audio_file, target_fps=30)
@@ -135,32 +140,16 @@ def generate_variation_weights(num_frames, num_streams=3, noise_scale=0.2, smoot
     
     return final_weights
 
-# Create directory in .\outputs and save outputs there
-def save_outputs(video_path, output_1, output_2, mocap, emotion, audio):
+def save_outputs(video_path, run_folder_path, output_1, output_2, mocap, emotion, audio):
 
-    base_output_folder = "outputs"
-
-    run_folder_name = os.path.splitext(os.path.basename(video_path))[0]
-    run_folder_path = os.path.join(base_output_folder, run_folder_name)
-
-    os.makedirs(run_folder_path, exist_ok=True)
     print(f"Created new directory: {run_folder_path}")
-
-    csv_path_A = os.path.join(run_folder_path, "variation_A.csv")
-    csv_path_B = os.path.join(run_folder_path, "variation_B.csv")
-    csv_path_mocap = os.path.join(run_folder_path, "mocap.csv")
-    csv_path_emotion = os.path.join(run_folder_path, "emotion.csv")
-    csv_path_audio = os.path.join(run_folder_path, "audio.csv")
-
-    output_1.to_csv(csv_path_A)
-    output_2.to_csv(csv_path_B)
-    mocap.to_csv(csv_path_mocap)
-    emotion.to_csv(csv_path_emotion)
-    audio.to_csv(csv_path_audio)
-    
+    output_1.to_csv(os.path.join(run_folder_path, "variation_A.csv"))
+    output_2.to_csv(os.path.join(run_folder_path, "variation_B.csv"))
+    mocap.to_csv(os.path.join(run_folder_path, "mocap.csv"))
+    emotion.to_csv(os.path.join(run_folder_path, "emotion.csv"))
+    audio.to_csv(os.path.join(run_folder_path, "audio.csv"))
     print("Saved output data to " + run_folder_path)
-
-
+    
 
 # Just in case files aren't the same length (they should be)
 min_len = min(len(mocap), len(emotion), len(audio))

@@ -1,0 +1,13 @@
+## Facial Emotions to Blendshapes pipeline
+
+# Data Processing
+pandas
+numpy
+scipy
+
+# Computer Vision & AI
+opencv-python
+deepface
+tf-keras
+
+# Note: DeepFace will automatically install TensorFlow and other dependencies on first run.
