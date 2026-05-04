@@ -71,7 +71,7 @@ def calculate_rotation(face_landmarks, pcf: PCF, image_shape):
 
    
 class Mefamo():
-    def __init__(self, input = 0, ip = '127.0.0.1', port = 11111, show_3d = False, hide_image = False, show_debug = False, no_noise = False, calibrate = False) -> None:
+    def __init__(self, input = 0, ip = '127.0.0.1', port = 11111, show_3d = False, hide_image = False, show_debug = False, add_noise = False, calibrate = False) -> None:
 
         self.input = input
         self.show_image = not hide_image
@@ -121,10 +121,11 @@ class Mefamo():
         self.frameCount = 0
         self.df = df = pd.DataFrame([], columns=np.append(["Timecode", "BlendshapeCount"], [shape.name for shape in FaceBlendShape]))
         self.noise = PerlinNoise(octaves=1, seed=time.time())
-        self.no_noise = no_noise
+        self.add_noise = add_noise
         self.noiseQueue = []
         self.event = None
         self.networkActivation = True
+        self.batchProcessing = False
         self.threads = []
         self.calibrate = calibrate
 
@@ -134,10 +135,12 @@ class Mefamo():
         # self.event = threading.Event()
         try:
             if os.path.isdir(self.input):
+                print(self.input + " is a directory. Activating Batch Processing!")
+                self.batchProcessing = True
                 self.show_image = False # Faster processing for pipeline.
+                self.show_3d = False # Faster processing for pipeline.
                 self.show_debug = False # Faster processing for pipeline.
                 self.networkActivation = False # Faster processing for pipeline.
-                print(self.input + " is a directory!")
                 count = 0
                 for root, dirs, files in os.walk(self.input):
                     shoot = root.replace(self.input, "")
@@ -149,6 +152,7 @@ class Mefamo():
                         self.startWrapper(os.path.join(root, file), outputDirFormatted)
                         self.df = df = pd.DataFrame([], columns=np.append(["Timecode", "BlendshapeCount"], [shape.name for shape in FaceBlendShape]))
 
+                        # NOTE: I'm not certain if threading multiple of these expensive processes will be beneficial. Following that, this threading support is unfinished.
                         # t = threading.Thread(target=self.startWrapper, args=(os.path.join(root, file),))
                         # self.threads.append(t)
                         # os.system('cls')
@@ -209,6 +213,7 @@ class Mefamo():
         # run the network loop in a separate thread
         if (self.networkActivation):
             self.network_thread.start()
+            self.endNetwork = False
         self.timeStart = time.time()
         timeAtFrame = time.time()
         catchup = 0
@@ -221,27 +226,27 @@ class Mefamo():
                 while cap.isOpened():
                     success, image = cap.read()
                     if not success:
-                        if (self.networkActivation):
+                        if (self.batchProcessing == False):
                             print("Ignoring empty camera frame.")
                         # continue
                         break
                     if not self._process_image(image):
                         break    
-                     # NOTE: This sleeps for too long; able to process faster than this. Refine calculations and see why desync may be happening with current working(?) frame solution.
                     self.frameCount += 1
-                    if not (self.framerate == -1): # Below is for live playback to be more smooth and in real time.
-                        sleepReducer = (time.time() - timeAtFrame)
-                        # sleepFor = max((1.0 / self.framerate) - sleepReducer, 0)
-                        sleepFor = (1.0 / self.framerate) - sleepReducer
-                        if (sleepFor < 0):
-                            catchup += (0 - sleepFor)
-                        else:
-                            catcherup = max(sleepFor - catchup, 0)
-                            # time.sleep(catcherup)
-                            catchup -= (sleepFor - catcherup)
+                    # NOTE: Below is unfinished support for playing video files at a consistent framerate. It tends to sleep for too long for whatever reason.
+                    # if not (self.framerate == -1): 
+                    #     sleepReducer = (time.time() - timeAtFrame)
+                    #     # sleepFor = max((1.0 / self.framerate) - sleepReducer, 0)
+                    #     sleepFor = (1.0 / self.framerate) - sleepReducer
+                    #     if (sleepFor < 0):
+                    #         catchup += (0 - sleepFor)
+                    #     else:
+                    #         catcherup = max(sleepFor - catchup, 0)
+                    #         # time.sleep(catcherup)
+                    #         catchup -= (sleepFor - catcherup)
                         
-                        timeAtFrame = time.time()
-                if (self.networkActivation):
+                    #     timeAtFrame = time.time()
+                if (self.batchProcessing == False):
                     print("Video capture received no more frames.")                
                 cap.release()
         
@@ -256,12 +261,13 @@ class Mefamo():
         # self.event.set()
         self.df.to_csv(outputName + ".csv", index=False)
         # print("Ending: " + preInput)
+        self.endNetwork = True
 
     def _network_loop(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:            
             s.connect((self.ip, self.upd_port))
             # while (self.event.is_set() is False): 
-            while True: 
+            while (self.endNetwork == False): 
                 with self.lock:
                     if self.got_new_data:                               
                         s.sendall(self.network_data)
@@ -281,43 +287,45 @@ class Mefamo():
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         face_image_3d = None
         if results.multi_face_landmarks:
-            for face_landmarks in results.multi_face_landmarks:
+            for face_landmarks in results.multi_face_landmarks: # NOTE: Mediapipe was set earlier to only pick up a single face, and so this should only loop once.
 
                 pose_transform_mat, metric_landmarks, rotation_vector, translation_vector = calculate_rotation(face_landmarks, self.pcf, image.shape)  
                 # draw a 3d image of the face
                 if self.show_3d:
                     face_image_3d = Drawing.draw_3d_face(metric_landmarks, image)
+                    
 
-                # draw the face mesh 
-                drawing_utils.draw_landmarks(
-                    image=image,
-                    landmark_list=face_landmarks,
-                    connections=face_mesh.FACEMESH_TESSELATION,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=drawing_styles
-                    .get_default_face_mesh_tesselation_style())
+                if (self.batchProcessing == False):
+                    # draw the face mesh 
+                    drawing_utils.draw_landmarks(
+                        image=image,
+                        landmark_list=face_landmarks,
+                        connections=face_mesh.FACEMESH_TESSELATION,
+                        landmark_drawing_spec=None,
+                        connection_drawing_spec=drawing_styles
+                        .get_default_face_mesh_tesselation_style())
 
-                # draw the face contours
-                drawing_utils.draw_landmarks(
-                    image=image,
-                    landmark_list=face_landmarks,
-                    connections=face_mesh.FACEMESH_CONTOURS,
-                    landmark_drawing_spec=None,
-                    connection_drawing_spec=drawing_styles
-                    .get_default_face_mesh_contours_style())
-            
-                # draw iris points
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[468], image, color = (0, 242, 255))
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[473], image, color = (201, 174, 255))
+                    # draw the face contours
+                    drawing_utils.draw_landmarks(
+                        image=image,
+                        landmark_list=face_landmarks,
+                        connections=face_mesh.FACEMESH_CONTOURS,
+                        landmark_drawing_spec=None,
+                        connection_drawing_spec=drawing_styles
+                        .get_default_face_mesh_contours_style())
+                
+                    # draw iris points
+                    image = Drawing.draw_landmark_point(face_landmarks.landmark[468], image, color = (0, 242, 255))
+                    image = Drawing.draw_landmark_point(face_landmarks.landmark[473], image, color = (201, 174, 255))
 
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[291], image, color = (192, 64, 128))
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[61], image, color = (64, 128, 192))
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (128, 192, 64))
-                image = Drawing.draw_landmark_point(face_landmarks.landmark[1], image, color = (255, 255, 255))
+                    image = Drawing.draw_landmark_point(face_landmarks.landmark[291], image, color = (192, 64, 128))
+                    image = Drawing.draw_landmark_point(face_landmarks.landmark[61], image, color = (64, 128, 192))
+                    image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (128, 192, 64))
+                    image = Drawing.draw_landmark_point(face_landmarks.landmark[1], image, color = (255, 255, 255))
 
-                # image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (255, 255, 255))
-                # image = Drawing.draw_landmark_point(face_landmarks.landmark[291], image, color = (64, 192, 128))
-                # image = Drawing.draw_landmark_point(face_landmarks.landmark[61], image, color = (192, 64, 128))
+                    # image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (255, 255, 255))
+                    # image = Drawing.draw_landmark_point(face_landmarks.landmark[291], image, color = (64, 192, 128))
+                    # image = Drawing.draw_landmark_point(face_landmarks.landmark[61], image, color = (192, 64, 128))
 
                 # calculate the head rotation out of the pose matrix
                 eulerAngles = transforms3d.euler.mat2euler(pose_transform_mat)
@@ -332,15 +340,16 @@ class Mefamo():
                 self.live_link_face.set_blendshape(FaceBlendShape.HeadRoll, roll)
                 self.live_link_face.set_blendshape(FaceBlendShape.HeadYaw, yaw)
 
-        # Flip the image horizontally for a selfie-view display.
-        self.image = cv2.flip(image, 1).astype('uint8')
+        if (self.batchProcessing == False):
+            # Flip the image horizontally for a selfie-view display.
+            self.image = cv2.flip(image, 1).astype('uint8')
 
-        # Debug format settings
-        white_bg = 0 * np.ones(shape=[360, 480, 3], dtype=np.uint8)
-        text_coordinates = [10, 10]
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 0.30
-        color = (0, 255, 0)
+            # Debug format settings
+            white_bg = 0 * np.ones(shape=[360, 480, 3], dtype=np.uint8)
+            text_coordinates = [10, 10]
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            font_scale = 0.30
+            color = (0, 255, 0)
 
         currently = time.time() - self.timeStart
         if not (self.framerate == -1):
@@ -349,10 +358,10 @@ class Mefamo():
         frame = math.floor(currently * round(self.framerate)) % round(self.framerate)
         remain = math.floor((((currently * round(self.framerate)) % round(self.framerate)) - frame) * 1000)
         currently_format = "{:02d}".format(math.floor(currentlySeconds / 3600)) + ":" + "{:02d}".format(math.floor(currentlySeconds / 60) % 60) + ":" + "{:02d}".format(currentlySeconds % 60) + ":" + "{:02d}".format(frame) + "." + "{:03d}".format(remain)
-        # [(self.live_link_face.get_blendshape(FaceBlendShape(shape.value)) + self.noise([currently + (1 / len(FaceBlendShape)), shape.value])) for shape in FaceBlendShape]
 
-        if (self.no_noise == False):
-            for shape in FaceBlendShape: # Baking perlin noise. Check "pylivelinkface.py" for enum definitions.
+        # TODO: Instead of a toggle, make additive perlin noise a multiplier.
+        if (self.add_noise):
+            for shape in FaceBlendShape: # NOTE: Additive perlin noise. Check "pylivelinkface.py" for enum definitions.
                 shapeIndex = shape.value
                 currentBlendShape = FaceBlendShape(shapeIndex)
                 currentBlendShapeValue = self.live_link_face.get_blendshape(currentBlendShape)
@@ -408,9 +417,6 @@ class Mefamo():
 
         self.df.loc[len(self.df)] = np.append([currently_format, len(FaceBlendShape)], [(self.live_link_face.get_blendshape(FaceBlendShape(shape.value))) for shape in FaceBlendShape])
 
-        # for shape in FaceBlendShape:
-            # shape_debug_text = f'{shape.name}: {self.live_link_face.get_blendshape(FaceBlendShape(shape.value)):.3f}'
-
         if self.show_image:
             cv2.imshow('MediaPipe Face Mesh', image.astype('uint8'))  
             if face_image_3d is not None and type(face_image_3d) == o3d.geometry.Image: 
@@ -432,11 +438,13 @@ class Mefamo():
             if cv2.waitKey(1) & 0xFF == 27:
                 return False
 
-        with self.lock:
-            self.got_new_data = True
-            self.network_data = self.live_link_face.encode()
+        if (self.batchProcessing == False):
+            with self.lock:
+                self.got_new_data = True
+                self.network_data = self.live_link_face.encode()
 
-        if (self.no_noise == False): # Removing baked perlin noise so it does not stack when the value is not updated.
+        
+        if (self.add_noise): # NOTE: Removing attitive perlin noise so it does not stack when the value is not updated.
             for shape in FaceBlendShape:
                 shapeIndex = shape.value
                 currentBlendShape = FaceBlendShape(shapeIndex)
