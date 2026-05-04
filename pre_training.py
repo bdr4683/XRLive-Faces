@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.ndimage import gaussian_filter1d
 import os
-from emotion_to_blendshapes import run_extraction
+from EmotionToBlendshapes.emotion_to_blendshapes import run_extraction
 
 #TODO: replace with however we're actually scraping videos
 

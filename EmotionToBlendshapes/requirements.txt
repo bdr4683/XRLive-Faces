@@ -1,0 +1,12 @@
+# libraries for handling large datasets, math, and interpolation
+pandas
+numpy
+scipy
+
+# tools for video capture, face detection, and emotion analysis
+opencv-python
+deepface
+tf-keras
+
+# core deep learning frameworks required by deepface
+tensorflow
