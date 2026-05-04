@@ -6,7 +6,7 @@ The blendshape to video pipeline
 
 # Architectural Diagram ~ Modified MeFaMo
 
-<!-- INSERT DIAGRAM HERE -->
+![alt text](./images/remefamo.png)
 
 The modified MeFaMo uses a lot of parameters to determine several behaviors, such as what it should display on the host machine, what to connect LiveLink to, and if to bake (subtle) additive perlin noise to certain blendshapes. In particular, passing in a directory as its input activates a batch processing pipeline, which disables LiveLink and external display windows to save on performance.
 When MeFaMo is started up, after determining if to use batch processing, it initiates a LiveLink network connection with an optionally-given IP address and port set in Unreal Engine. By default, these would point to the machine MeFaMo is running from, where both it and Unreal Engine would be running on the same machine. Unreal Engine is not required for MeFaMo to run.
@@ -19,7 +19,7 @@ From there, the next frame of input is processed. Once all of the frames have be
 
 # Architectural Diagram ~ Blendshape to Video Pipeline
 
-<!-- INSERT DIAGRAM HERE -->
+![alt text](./images/b2v.png)
 
 The overall scope of the blendshape to video pipeline is simpler, for the bare minimum that is needed is a machine and Unreal Engine with certain plugins and extensions (namely the MetaHuman, LiveLink, and ARKit ones) enabled. It is an Editor Ultility Widget, so it needs to be started before executed.
 After pressing the big button that encompasses the entire Widget, it first cleans up some leftover that may have been left due to premature exiting (can be user-initiated by stopping the Widget from the Widget builder). From there, It begins execution of the main loop that encompasses all functionality for every file present in a predefined directory. These should all be valid blendshape data files imported as Level Sequences with the LiveLinkFaceImporter plugin as there are currently no checks that they are.
