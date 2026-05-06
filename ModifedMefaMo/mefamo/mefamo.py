@@ -215,37 +215,52 @@ class Mefamo():
             self.network_thread.start()
             self.endNetwork = False
         self.timeStart = time.time()
-        timeAtFrame = time.time()
+        
         catchup = 0
         self.frameCount = 0
-        # catcherup = 0
-
+        catcherup = 0
         try:
             if cap is not None:
                 # for camera and videos
+                timeAtFrame = time.time()
                 while cap.isOpened():
                     success, image = cap.read()
+                    # print(self.frameCount % self.framerate)
                     if not success:
                         if (self.batchProcessing == False):
                             print("Ignoring empty camera frame.")
                         # continue
                         break
+                    
+                    # NOTE: Below is support for playing video files at a consistent framerate. It's not fool-proof and may tend to lag behind after a while.
+                    if (not (self.framerate == -1)) and (self.frameCount > 0) and (self.batchProcessing == False):  
+                        deltaTime = (time.time() - timeAtFrame)
+                        timeAtFramer = time.time()
+                        # sleepFor = max((1.0 / self.framerate) - sleepReducer, 0)
+                        freeTime = (1.0 / self.framerate) - deltaTime
+                        # print('{:<10}'.format(f"{freeTime: .3f}"))
+                        # print('{:<10}'.format(f"{freeTime: .3f}"))
+                        
+                        if (freeTime < 0): # YOUR TAKING TOO LONG
+                            catchup += (freeTime * -1)
+                        else:
+                            sleepFor = freeTime - catchup
+                            if (sleepFor > 0):
+                                # time.sleep(sleepFor)
+                                while (sleepFor > (time.time() - timeAtFramer)):
+                                    continue;
+                                catchup += (time.time() - timeAtFramer)
+                                # print(sleepFor - (time.time() - timeAtFrame))
+                            catchup -= freeTime
+                        if (catchup > (1.0 / self.framerate)):
+                            print('{:<10}'.format(f"{catchup: .4f}"))
+                            
+                    timeAtFrame = time.time()
                     if not self._process_image(image):
                         break    
                     self.frameCount += 1
-                    # NOTE: Below is unfinished support for playing video files at a consistent framerate. It tends to sleep for too long for whatever reason.
-                    # if not (self.framerate == -1): 
-                    #     sleepReducer = (time.time() - timeAtFrame)
-                    #     # sleepFor = max((1.0 / self.framerate) - sleepReducer, 0)
-                    #     sleepFor = (1.0 / self.framerate) - sleepReducer
-                    #     if (sleepFor < 0):
-                    #         catchup += (0 - sleepFor)
-                    #     else:
-                    #         catcherup = max(sleepFor - catchup, 0)
-                    #         # time.sleep(catcherup)
-                    #         catchup -= (sleepFor - catcherup)
                         
-                    #     timeAtFrame = time.time()
+
                 if (self.batchProcessing == False):
                     print("Video capture received no more frames.")                
                 cap.release()
@@ -318,10 +333,10 @@ class Mefamo():
                     image = Drawing.draw_landmark_point(face_landmarks.landmark[468], image, color = (0, 242, 255))
                     image = Drawing.draw_landmark_point(face_landmarks.landmark[473], image, color = (201, 174, 255))
 
-                    image = Drawing.draw_landmark_point(face_landmarks.landmark[291], image, color = (192, 64, 128))
-                    image = Drawing.draw_landmark_point(face_landmarks.landmark[61], image, color = (64, 128, 192))
-                    image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (128, 192, 64))
-                    image = Drawing.draw_landmark_point(face_landmarks.landmark[1], image, color = (255, 255, 255))
+                    # image = Drawing.draw_landmark_point(face_landmarks.landmark[291], image, color = (192, 64, 128))
+                    # image = Drawing.draw_landmark_point(face_landmarks.landmark[61], image, color = (64, 128, 192))
+                    # image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (128, 192, 64))
+                    # image = Drawing.draw_landmark_point(face_landmarks.landmark[1], image, color = (255, 255, 255))
 
                     # image = Drawing.draw_landmark_point(face_landmarks.landmark[13], image, color = (255, 255, 255))
                     # image = Drawing.draw_landmark_point(face_landmarks.landmark[291], image, color = (64, 192, 128))
